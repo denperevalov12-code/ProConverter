@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер форматов изображений | ProConverter</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card-bg: rgba(20, 20, 35, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text: #e0e0e0;
+            --text-secondary: #a0a0b8;
+            --accent: #7c5cfc;
+            --accent-glow: rgba(124, 92, 252, 0.4);
+            --accent2: #4ec9f0;
+            --success: #34d399;
+            --error: #f87171;
+            --warning: #fbbf24;
+            --radius: 20px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Анимированный фон */
+        .bg-orbs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.5;
+            animation: floatOrb 20s infinite ease-in-out;
+        }
+        .orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, #7c5cfc 0%, transparent 70%);
+            top: -250px;
+            left: -150px;
+            animation-delay: 0s;
+            animation-duration: 22s;
+        }
+        .orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #4ec9f0 0%, transparent 70%);
+            bottom: -200px;
+            right: -150px;
+            animation-delay: -7s;
+            animation-duration: 18s;
+        }
+        .orb:nth-child(3) {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #f472b6 0%, transparent 70%);
+            top: 40%;
+            left: 50%;
+            animation-delay: -14s;
+            animation-duration: 25s;
+        }
+        .orb:nth-child(4) {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #34d399 0%, transparent 70%);
+            top: 10%;
+            right: 20%;
+            animation-delay: -3s;
+            animation-duration: 16s;
+        }
+        @keyframes floatOrb {
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(80px, -60px) scale(1.15);
+            }
+            50% {
+                transform: translate(-40px, 70px) scale(0.9);
+            }
+            75% {
+                transform: translate(-70px, -40px) scale(1.1);
+            }
+        }
+
+        /* Сетка на фоне */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Основной контейнер */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 700px;
+            padding: 20px;
+        }
+
+        /* Стеклянная карточка */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+                0 2px 0 rgba(255, 255, 255, 0.03) inset;
+            padding: 36px 32px;
+            transition: var(--transition);
+        }
+        .glass-card:hover {
+            box-shadow:
+                0 30px 70px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+                0 0 40px rgba(124, 92, 252, 0.06);
+        }
+
+        /* Заголовок */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .header .icon-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent), #9b6dff);
+            margin-bottom: 14px;
+            box-shadow: 0 10px 30px var(--accent-glow);
+            animation: iconPulse 3s infinite ease-in-out;
+        }
+        @keyframes iconPulse {
+            0%,
+            100% {
+                box-shadow: 0 10px 30px var(--accent-glow);
+            }
+            50% {
+                box-shadow: 0 15px 45px rgba(124, 92, 252, 0.7);
+            }
+        }
+        .header .icon-wrapper svg {
+            width: 26px;
+            height: 26px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, #c5b8f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            letter-spacing: 0.02em;
+        }
+
+        /* Зона Drag & Drop */
+        .drop-zone {
+            position: relative;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 40px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.015);
+            overflow: hidden;
+            margin-bottom: 24px;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .drop-zone:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 0 40px rgba(124, 92, 252, 0.1);
+        }
+        .drop-zone.drag-over {
+            border-color: var(--accent) !important;
+            background: rgba(124, 92, 252, 0.08) !important;
+            box-shadow: 0 0 60px rgba(124, 92, 252, 0.25) !important;
+            transform: scale(1.015);
+            animation: dropGlow 1.5s infinite ease-in-out;
+        }
+        @keyframes dropGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 40px rgba(124, 92, 252, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 70px rgba(124, 92, 252, 0.45);
+            }
+        }
+        .drop-zone.has-file {
+            border-color: var(--success) !important;
+            border-style: solid !important;
+            background: rgba(52, 211, 153, 0.04) !important;
+            box-shadow: 0 0 30px rgba(52, 211, 153, 0.1) !important;
+        }
+        .drop-zone .drop-icon {
+            font-size: 3rem;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+        .drop-zone.drag-over .drop-icon {
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+        .drop-zone .drop-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            pointer-events: none;
+        }
+        .drop-zone .drop-text strong {
+            color: var(--accent2);
+            font-weight: 600;
+        }
+        .drop-zone .file-info-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(52, 211, 153, 0.15);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: var(--success);
+            font-weight: 500;
+            animation: fadeInUp 0.4s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .drop-zone .file-info-pill .remove-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            margin-left: 4px;
+        }
+        .drop-zone .file-info-pill .remove-btn:hover {
+            background: rgba(248, 113, 113, 0.5);
+        }
+
+        /* Селекторы форматов */
+        .format-selectors {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .format-selectors .select-group {
+            flex: 1;
+            min-width: 140px;
+        }
+        .format-selectors label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .format-selectors select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--radius-xs);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+        .format-selectors select:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .format-selectors select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
+        }
+
+        /* 👇 ИСПРАВЛЕНИЕ: тёмные опции в выпадающем списке */
+        .format-selectors select option {
+            background: #12122a;
+            color: #e0e0e0;
+            padding: 8px;
+        }
+        /* Для браузеров на WebKit можно добавить стили к самому выпадающему списку через псевдоэлемент, 
+           но это не везде работает. Оставим только опции. */
+        .format-selectors select::-webkit-scrollbar {
+            width: 6px;
+        }
+        .format-selectors select::-webkit-scrollbar-track {
+            background: #1a1a30;
+            border-radius: 4px;
+        }
+        .format-selectors select::-webkit-scrollbar-thumb {
+            background: #7c5cfc;
+            border-radius: 4px;
+        }
+
+        .swap-btn {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 18px;
+            position: relative;
+        }
+        .swap-btn:hover {
+            background: rgba(124, 92, 252, 0.2);
+            border-color: var(--accent);
+            transform: rotate(180deg);
+            box-shadow: 0 0 20px rgba(124, 92, 252, 0.3);
+        }
+        .swap-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            transition: var(--transition);
+        }
+
+        /* Слайдер качества */
+        .quality-slider-group {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .quality-slider-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            letter-spacing: 0.03em;
+        }
+        .quality-slider-group input[type="range"] {
+            flex: 1;
+            min-width: 100px;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.15);
+            outline: none;
+            cursor: pointer;
+        }
+        .quality-slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 0 15px var(--accent-glow);
+            transition: var(--transition);
+        }
+        .quality-slider-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 25px var(--accent-glow);
+        }
+        .quality-value {
+            font-weight: 700;
+            color: var(--accent2);
+            min-width: 36px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Кнопка конвертации */
+        .convert-btn {
+            width: 100%;
+            padding: 16px 24px;
+            border-radius: var(--radius-xs);
+            background: linear-gradient(135deg, var(--accent), #6a3de8);
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(124, 92, 252, 0.35);
+            font-family: var(--font);
+        }
+        .convert-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 40px rgba(124, 92, 252, 0.5);
+        }
+        .convert-btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 6px 20px rgba(124, 92, 252, 0.3);
+        }
+        .convert-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(30%);
+        }
+        .convert-btn .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .convert-btn.success-state {
+            background: linear-gradient(135deg, #34d399, #10b981) !important;
+            box-shadow: 0 8px 30px rgba(52, 211, 153, 0.4) !important;
+        }
+
+        /* Превью */
+        .preview-area {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+            animation: fadeInUp 0.5s ease-out;
+        }
+        .preview-area.visible {
+            display: block;
+        }
+        .preview-area .preview-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .preview-area .preview-img-wrapper {
+            position: relative;
+            display: inline-block;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .preview-area img {
+            display: block;
+            max-width: 100%;
+            max-height: 280px;
+            object-fit: contain;
+        }
+        .preview-meta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .preview-meta span {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Кнопка скачивания */
+        .download-btn {
+            display: none;
+            width: 100%;
+            padding: 14px 24px;
+            border-radius: var(--radius-xs);
+            background: rgba(52, 211, 153, 0.15);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            color: var(--success);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            transition: var(--transition);
+            margin-top: 14px;
+            font-family: var(--font);
+            animation: fadeInUp 0.5s ease-out;
+        }
+        .download-btn.visible {
+            display: block;
+        }
+        .download-btn:hover {
+            background: rgba(52, 211, 153, 0.25);
+            border-color: rgba(52, 211, 153, 0.7);
+            box-shadow: 0 8px 25px rgba(52, 211, 153, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Сообщения */
+        .message-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            animation: slideDown 0.4s ease-out, fadeOut 0.3s 2.7s ease-out forwards;
+            pointer-events: none;
+            letter-spacing: 0.02em;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .message-toast.error {
+            background: rgba(248, 113, 113, 0.2);
+            border: 1px solid rgba(248, 113, 113, 0.5);
+            color: #fca5a5;
+        }
+        .message-toast.success {
+            background: rgba(52, 211, 153, 0.2);
+            border: 1px solid rgba(52, 211, 153, 0.5);
+            color: #6ee7b7;
+        }
+        .message-toast.info {
+            background: rgba(78, 201, 240, 0.2);
+            border: 1px solid rgba(78, 201, 240, 0.5);
+            color: #67d8f9;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 24px 16px;
+                border-radius: var(--radius-sm);
+            }
+            .format-selectors {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .swap-btn {
+                margin-top: 4px;
+                align-self: center;
+                transform: rotate(90deg);
+            }
+            .swap-btn:hover {
+                transform: rotate(270deg);
+            }
+            .drop-zone {
+                padding: 28px 16px;
+                min-height: 120px;
+            }
+            .header h1 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Анимированные орбы -->
+    <div class="bg-orbs">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+    <div class="bg-grid"></div>
+
+    <!-- Основной контейнер -->
+    <div class="app-container">
+        <div class="glass-card">
+            <!-- Заголовок -->
+            <div class="header">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="2" width="20" height="20" rx="4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <path d="M21 15l-5-5L5 21" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>Конвертер форматов</h1>
+                <p class="subtitle">JPEG, PNG, WEBP, TIFF, RAW, GIF, SVG, HEIC, BMP, PSD, PDF, ICO, AVIF</p>
+            </div>
+
+            <!-- Зона Drag & Drop -->
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-icon" id="dropIcon">📁</div>
+                <span class="drop-text" id="dropText">
+                    <strong>Перетащите</strong> файл сюда или <strong>нажмите</strong> для выбора
+                </span>
+                <input type="file" id="fileInput" hidden accept="image/*,.jpg,.jpeg,.png,.webp,.tiff,.tif,.raw,.cr2,.nef,.arw,.dng,.orf,.rw2,.raf,.pef,.srw,.gif,.svg,.heic,.heif,.bmp,.psd,.pdf,.ico,.avif">
+            </div>
+
+            <!-- Селекторы форматов -->
+            <div class="format-selectors">
+                <div class="select-group">
+                    <label>Из формата</label>
+                    <select id="fromFormat">
+                        <option value="auto">Автоопределение</option>
+                        <option value="jpeg">JPEG</option>
+                        <option value="png">PNG</option>
+                        <option value="webp">WEBP</option>
+                        <option value="tiff">TIFF</option>
+                        <option value="raw">RAW</option>
+                        <option value="gif">GIF</option>
+                        <option value="svg">SVG</option>
+                        <option value="heic">HEIC</option>
+                        <option value="bmp">BMP</option>
+                        <option value="psd">PSD</option>
+                        <option value="pdf">PDF</option>
+                        <option value="ico">ICO</option>
+                        <option value="avif">AVIF</option>
+                    </select>
+                </div>
+                <button class="swap-btn" id="swapBtn" title="Поменять местами">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="select-group">
+                    <label>В формат</label>
+                    <select id="toFormat">
+                        <option value="jpeg">JPEG</option>
+                        <option value="png" selected>PNG</option>
+                        <option value="webp">WEBP</option>
+                        <option value="tiff">TIFF</option>
+                        <option value="raw">RAW</option>
+                        <option value="gif">GIF</option>
+                        <option value="svg">SVG</option>
+                        <option value="heic">HEIC</option>
+                        <option value="bmp">BMP</option>
+                        <option value="psd">PSD</option>
+                        <option value="pdf">PDF</option>
+                        <option value="ico">ICO</option>
+                        <option value="avif">AVIF</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Слайдер качества (для lossy форматов) -->
+            <div class="quality-slider-group" id="qualityGroup">
+                <label for="qualitySlider">Качество:</label>
+                <input type="range" id="qualitySlider" min="0.1" max="1" step="0.05" value="0.92">
+                <span class="quality-value" id="qualityValue">92%</span>
+            </div>
+
+            <!-- Кнопка конвертации -->
+            <button class="convert-btn" id="convertBtn" disabled>
+                Загрузите файл для конвертации
+            </button>
+
+            <!-- Превью -->
+            <div class="preview-area" id="previewArea">
+                <p class="preview-label">Предпросмотр</p>
+                <div class="preview-img-wrapper">
+                    <img id="previewImage" alt="Preview">
+                </div>
+                <div class="preview-meta" id="previewMeta"></div>
+            </div>
+
+            <!-- Кнопка скачивания -->
+            <button class="download-btn" id="downloadBtn">
+                💾 Скачать результат
+            </button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ============ DOM элементы ============
+            const dropZone = document.getElementById('dropZone');
+            const dropIcon = document.getElementById('dropIcon');
+            const dropText = document.getElementById('dropText');
+            const fileInput = document.getElementById('fileInput');
+            const fromFormatSelect = document.getElementById('fromFormat');
+            const toFormatSelect = document.getElementById('toFormat');
+            const swapBtn = document.getElementById('swapBtn');
+            const convertBtn = document.getElementById('convertBtn');
+            const qualityGroup = document.getElementById('qualityGroup');
+            const qualitySlider = document.getElementById('qualitySlider');
+            const qualityValue = document.getElementById('qualityValue');
+            const previewArea = document.getElementById('previewArea');
+            const previewImage = document.getElementById('previewImage');
+            const previewMeta = document.getElementById('previewMeta');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            // ============ Состояние ============
+            let currentFile = null;
+            let currentFileDataURL = null;
+            let convertedBlob = null;
+            let convertedFileName = null;
+            let imageDimensions = null;
+            let isConverting = false;
+
+            // ============ MIME типы и расширения ============
+            const formatMap = {
+                jpeg: { mime: 'image/jpeg', ext: 'jpg', label: 'JPEG', lossy: true },
+                png: { mime: 'image/png', ext: 'png', label: 'PNG', lossy: false },
+                webp: { mime: 'image/webp', ext: 'webp', label: 'WEBP', lossy: true },
+                tiff: { mime: 'image/tiff', ext: 'tiff', label: 'TIFF', lossy: false },
+                raw: { mime: 'image/x-raw', ext: 'raw', label: 'RAW', lossy: false },
+                gif: { mime: 'image/gif', ext: 'gif', label: 'GIF', lossy: false },
+                svg: { mime: 'image/svg+xml', ext: 'svg', label: 'SVG', lossy: false },
+                heic: { mime: 'image/heic', ext: 'heic', label: 'HEIC', lossy: true },
+                bmp: { mime: 'image/bmp', ext: 'bmp', label: 'BMP', lossy: false },
+                psd: { mime: 'image/vnd.adobe.photoshop', ext: 'psd', label: 'PSD', lossy: false },
+                pdf: { mime: 'application/pdf', ext: 'pdf', label: 'PDF', lossy: false },
+                ico: { mime: 'image/x-icon', ext: 'ico', label: 'ICO', lossy: false },
+                avif: { mime: 'image/avif', ext: 'avif', label: 'AVIF', lossy: true },
+            };
+
+            // Форматы, которые браузер может ДЕКОДИРОВАТЬ (загрузить в Image)
+            const browserDecodable = new Set([
+                'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'ico', 'avif'
+            ]);
+
+            // Форматы, которые браузер может ЗАКОДИРОВАТЬ через canvas.toBlob
+            const browserEncodable = new Set([
+                'jpeg', 'png', 'webp', 'bmp', 'avif'
+            ]);
+
+            // Форматы, требующие специальной обработки для вывода
+            const specialOutputFormats = new Set(['svg', 'ico', 'gif']);
+
+            // RAW-расширения
+            const rawExtensions = ['cr2', 'nef', 'arw', 'dng', 'orf', 'rw2', 'raf', 'pef',
+                'srw', 'raw', '3fr', 'ari', 'bay', 'cap', 'dcs', 'dcr', 'drf', 'eip', 'erf',
+                'fff', 'iiq', 'k25', 'kdc', 'mdc', 'mef', 'mos', 'mrw', 'nrw', 'obm', 'orf',
+                'pef', 'ptx', 'pxn', 'r3d', 'raf', 'raw', 'rwl', 'rwz', 'sr2', 'srf', 'srw', 'x3f'
+            ];
+
+            // ============ Утилиты ============
+            function getFileExtension(filename) {
+                return filename.split('.').pop().toLowerCase();
+            }
+
+            function detectFormatFromExtension(ext) {
+                const mapping = {
+                    'jpg': 'jpeg',
+                    'jpeg': 'jpeg',
+                    'jpe': 'jpeg',
+                    'jfif': 'jpeg',
+                    'png': 'png',
+                    'webp': 'webp',
+                    'tiff': 'tiff',
+                    'tif': 'tiff',
+                    'gif': 'gif',
+                    'svg': 'svg',
+                    'svgz': 'svg',
+                    'heic': 'heic',
+                    'heif': 'heif',
+                    'bmp': 'bmp',
+                    'dib': 'bmp',
+                    'psd': 'psd',
+                    'psb': 'psd',
+                    'pdf': 'pdf',
+                    'ico': 'ico',
+                    'avif': 'avif',
+                };
+                // Проверка RAW
+                if (rawExtensions.includes(ext)) return 'raw';
+                return mapping[ext] || null;
+            }
+
+            function getFormatKey(formatValue) {
+                if (formatValue === 'auto') return null;
+                return formatMap[formatValue] ? formatValue : null;
+            }
+
+            function showToast(message, type = 'info') {
+                const existing = document.querySelector('.message-toast');
+                if (existing) existing.remove();
+                const toast = document.createElement('div');
+                toast.className = `message-toast ${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3100);
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(2) + ' MB';
+            }
+
+            function resetUI() {
+                convertedBlob = null;
+                convertedFileName = null;
+                previewArea.classList.remove('visible');
+                downloadBtn.classList.remove('visible');
+                convertBtn.classList.remove('success-state');
+                convertBtn.disabled = !currentFile;
+                updateConvertButtonText();
+                previewMeta.innerHTML = '';
+            }
+
+            function updateConvertButtonText() {
+                if (!currentFile) {
+                    convertBtn.innerHTML = 'Загрузите файл для конвертации';
+                    convertBtn.disabled = true;
+                } else if (isConverting) {
+                    convertBtn.innerHTML =
+                        '<span class="spinner"></span> Конвертация...';
+                    convertBtn.disabled = true;
+                } else {
+                    const fromFmt = fromFormatSelect.value === 'auto' ?
+                        (currentFile ? (detectFormatFromExtension(getFileExtension(currentFile.name)) ||
+                            '?').toUpperCase() : '?') :
+                        (formatMap[fromFormatSelect.value]?.label || fromFormatSelect.value);
+                    const toFmt = formatMap[toFormatSelect.value]?.label || toFormatSelect.value;
+                    convertBtn.innerHTML = `🔄 Конвертировать в ${toFmt}`;
+                    convertBtn.disabled = false;
+                }
+            }
+
+            // ============ Обработка файла ============
+            function handleFile(file) {
+                if (!file) return;
+
+                const ext = getFileExtension(file.name);
+                const detectedFormat = detectFormatFromExtension(ext);
+
+                if (!detectedFormat && !file.type.startsWith('image/') && file.type !== 'application/pdf') {
+                    if (!['heic', 'heif'].includes(ext)) {
+                        showToast('Неподдерживаемый формат файла. Выберите изображение.', 'error');
+                        return;
+                    }
+                }
+
+                currentFile = file;
+                currentFileDataURL = null;
+                imageDimensions = null;
+                convertedBlob = null;
+                convertedFileName = null;
+                previewArea.classList.remove('visible');
+                downloadBtn.classList.remove('visible');
+                convertBtn.classList.remove('success-state');
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentFileDataURL = e.target.result;
+
+                    const img = new Image();
+                    img.onload = function() {
+                        imageDimensions = { width: img.naturalWidth, height: img.naturalHeight };
+                        showFileInDropZone(file);
+                        updateConvertButtonText();
+                        showPreview(img);
+                    };
+                    img.onerror = function() {
+                        imageDimensions = null;
+                        showFileInDropZone(file);
+                        updateConvertButtonText();
+                        previewArea.classList.remove('visible');
+                        downloadBtn.classList.remove('visible');
+                        const fmt = detectFormatFromExtension(ext);
+                        if (fmt && !browserDecodable.has(fmt)) {
+                            showToast(
+                                `Формат ${fmt.toUpperCase()} не может быть декодирован браузером. Конвертация ограничена.`,
+                                'info');
+                        }
+                    };
+                    img.src = currentFileDataURL;
+                };
+                reader.onerror = function() {
+                    showToast('Ошибка чтения файла.', 'error');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function showFileInDropZone(file) {
+                const ext = getFileExtension(file.name);
+                const fmt = detectFormatFromExtension(ext);
+                const fmtLabel = fmt ? formatMap[fmt]?.label || fmt.toUpperCase() : ext.toUpperCase();
+
+                dropZone.classList.add('has-file');
+                dropIcon.textContent = '✅';
+                dropText.innerHTML = `
+                    <span class="file-info-pill">
+                        📄 ${file.name} <span style="opacity:0.7;font-size:0.75rem;">(${fmtLabel}, ${formatFileSize(file.size)})</span>
+                        <button class="remove-btn" id="removeFileBtn" title="Удалить файл">✕</button>
+                    </span>
+                `;
+
+                setTimeout(() => {
+                    const removeBtn = document.getElementById('removeFileBtn');
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            clearFile();
+                        });
+                    }
+                }, 50);
+            }
+
+            function clearFile() {
+                currentFile = null;
+                currentFileDataURL = null;
+                imageDimensions = null;
+                convertedBlob = null;
+                convertedFileName = null;
+                dropZone.classList.remove('has-file', 'drag-over');
+                dropIcon.textContent = '📁';
+                dropText.innerHTML =
+                    '<strong>Перетащите</strong> файл сюда или <strong>нажмите</strong> для выбора';
+                previewArea.classList.remove('visible');
+                downloadBtn.classList.remove('visible');
+                convertBtn.classList.remove('success-state');
+                updateConvertButtonText();
+                fileInput.value = '';
+            }
+
+            function showPreview(img) {
+                previewImage.src = img.src;
+                previewArea.classList.add('visible');
+                const w = img.naturalWidth;
+                const h = img.naturalHeight;
+                previewMeta.innerHTML = `
+                    <span>📐 ${w} × ${h} px</span>
+                    <span>💾 ${formatFileSize(currentFile?.size || 0)}</span>
+                    <span>📋 ${detectFormatFromExtension(getFileExtension(currentFile?.name || ''))?.toUpperCase() || '?'}</span>
+                `;
+            }
+
+            // ============ Drag & Drop ============
+            dropZone.addEventListener('click', (e) => {
+                if (e.target.id === 'removeFileBtn') return;
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('drag-over');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            document.body.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            document.body.addEventListener('drop', (e) => {
+                if (!dropZone.contains(e.target)) {
+                    e.preventDefault();
+                }
+            });
+
+            // ============ Swap форматов ============
+            swapBtn.addEventListener('click', () => {
+                if (fromFormatSelect.value === 'auto') {
+                    showToast('Сначала выберите конкретный исходный формат для обмена.', 'info');
+                    return;
+                }
+                const fromVal = fromFormatSelect.value;
+                const toVal = toFormatSelect.value;
+                fromFormatSelect.value = toVal;
+                toFormatSelect.value = fromVal;
+                resetUI();
+                updateConvertButtonText();
+                updateQualityVisibility();
+                swapBtn.style.transform = 'rotate(180deg)';
+                setTimeout(() => { swapBtn.style.transform = ''; }, 300);
+            });
+
+            // ============ Слайдер качества ============
+            qualitySlider.addEventListener('input', () => {
+                qualityValue.textContent = Math.round(parseFloat(qualitySlider.value) * 100) + '%';
+            });
+
+            function updateQualityVisibility() {
+                const toFmt = toFormatSelect.value;
+                const fmtInfo = formatMap[toFmt];
+                if (fmtInfo && fmtInfo.lossy) {
+                    qualityGroup.style.display = 'flex';
+                } else if (toFmt === 'svg' || toFmt === 'ico' || toFmt === 'gif') {
+                    qualityGroup.style.display = 'flex';
+                } else {
+                    qualityGroup.style.display = 'none';
+                }
+            }
+
+            toFormatSelect.addEventListener('change', () => {
+                resetUI();
+                updateConvertButtonText();
+                updateQualityVisibility();
+            });
+
+            fromFormatSelect.addEventListener('change', () => {
+                resetUI();
+                updateConvertButtonText();
+            });
+
+            // ============ Конвертация ============
+            convertBtn.addEventListener('click', async () => {
+                if (!currentFile || !currentFileDataURL || isConverting) return;
+
+                const toFormat = toFormatSelect.value;
+                const fromFormatRaw = fromFormatSelect.value;
+                const ext = getFileExtension(currentFile.name);
+                const detectedFormat = detectFormatFromExtension(ext);
+
+                let fromFormat = fromFormatRaw === 'auto' ? detectedFormat : fromFormatRaw;
+                if (!fromFormat) {
+                    showToast('Не удалось определить исходный формат. Выберите вручную.', 'error');
+                    return;
+                }
+
+                if (!browserDecodable.has(fromFormat) && !['heic'].includes(fromFormat)) {
+                    const specialMsg = {
+                        'raw': 'RAW-файлы не могут быть декодированы браузером. Требуется специализированный конвертер (например, Adobe Lightroom, RawTherapee).',
+                        'psd': 'PSD-файлы не поддерживаются браузером. Используйте Adobe Photoshop или GIMP для конвертации.',
+                        'pdf': 'PDF-файлы не могут быть напрямую конвертированы в изображения в браузере без дополнительных библиотек.',
+                        'tiff': 'TIFF-файлы имеют ограниченную поддержку в браузерах. Некоторые версии Safari могут их открывать.',
+                    };
+                    showToast(specialMsg[fromFormat] ||
+                        `Формат ${fromFormat.toUpperCase()} не поддерживается для декодирования в браузере.`,
+                        'error');
+                    return;
+                }
+
+                if (fromFormat === 'heic') {
+                    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
+                        /apple/i.test(navigator.vendor || '');
+                    if (!isSafari) {
+                        showToast(
+                            'HEIC поддерживается только в Safari (iOS/macOS). В других браузерах конвертация недоступна.',
+                            'error');
+                        return;
+                    }
+                }
+
+                const canEncode = browserEncodable.has(toFormat) || specialOutputFormats.has(toFormat);
+                if (!canEncode) {
+                    const specialMsg = {
+                        'raw': 'Браузер не может создавать RAW-файлы. Этот формат требует специализированного ПО.',
+                        'psd': 'Браузер не может создавать PSD-файлы. Используйте Adobe Photoshop.',
+                        'pdf': 'Браузер не может создавать PDF из изображений без дополнительных библиотек.',
+                        'tiff': 'Браузер не поддерживает кодирование в TIFF.',
+                        'heic': 'Браузер не поддерживает кодирование в HEIC (запатентованный формат).',
+                    };
+                    showToast(specialMsg[toFormat] ||
+                        `Браузер не поддерживает сохранение в формате ${toFormat.toUpperCase()}.`,
+                        'error');
+                    return;
+                }
+
+                isConverting = true;
+                updateConvertButtonText();
+                convertBtn.innerHTML = '<span class="spinner"></span> Конвертация...';
+                convertedBlob = null;
+                downloadBtn.classList.remove('visible');
+                convertBtn.classList.remove('success-state');
+
+                try {
+                    const img = await loadImage(currentFileDataURL);
+                    if (!img) {
+                        throw new Error('Не удалось загрузить изображение для конвертации.');
+                    }
+
+                    const width = img.naturalWidth;
+                    const height = img.naturalHeight;
+                    const quality = parseFloat(qualitySlider.value);
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+
+                    if (toFormat === 'jpeg') {
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, width, height);
+                    }
+
+                    ctx.drawImage(img, 0, 0);
+
+                    if (toFormat === 'svg') {
+                        const pngDataURL = canvas.toDataURL('image/png');
+                        const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+             width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+          <image width="${width}" height="${height}" xlink:href="${pngDataURL}"/>
+        </svg>`;
+                        convertedBlob = new Blob([svgContent], { type: 'image/svg+xml' });
+                        convertedFileName = currentFile.name.replace(/\.[^.]+$/, '') + '.svg';
+                    } else if (toFormat === 'ico') {
+                        let icoWidth = Math.min(width, 256);
+                        let icoHeight = Math.min(height, 256);
+                        const icoCanvas = document.createElement('canvas');
+                        icoCanvas.width = icoWidth;
+                        icoCanvas.height = icoHeight;
+                        const icoCtx = icoCanvas.getContext('2d');
+                        icoCtx.drawImage(img, 0, 0, icoWidth, icoHeight);
+                        convertedBlob = await new Promise(resolve => {
+                            icoCanvas.toBlob(blob => {
+                                resolve(blob || new Blob([], { type: 'image/png' }));
+                            }, 'image/png');
+                        });
+                        convertedFileName = currentFile.name.replace(/\.[^.]+$/, '') + '.ico';
+                    } else if (toFormat === 'gif') {
+                        convertedBlob = await new Promise(resolve => {
+                            canvas.toBlob(blob => {
+                                resolve(blob || new Blob([], { type: 'image/png' }));
+                            }, 'image/png');
+                        });
+                        convertedFileName = currentFile.name.replace(/\.[^.]+$/, '') +
+                            '_static.gif';
+                        showToast(
+                            'GIF создан как статичное изображение (браузеры не поддерживают кодирование анимированных GIF).',
+                            'info');
+                    } else {
+                        const mimeType = formatMap[toFormat]?.mime || 'image/png';
+                        convertedBlob = await new Promise((resolve, reject) => {
+                            canvas.toBlob(blob => {
+                                if (blob) {
+                                    resolve(blob);
+                                } else {
+                                    canvas.toBlob(fallbackBlob => {
+                                        if (fallbackBlob) {
+                                            resolve(fallbackBlob);
+                                            if (toFormat !== 'png') {
+                                                showToast(
+                                                    `Формат ${toFormat.toUpperCase()} не поддерживается для кодирования. Сохранено как PNG.`,
+                                                    'info');
+                                                convertedFileName = currentFile.name.replace(
+                                                    /\.[^.]+$/, '') + '.png';
+                                            }
+                                        } else {
+                                            reject(new Error(
+                                                'Не удалось создать выходной файл.'));
+                                        }
+                                    }, 'image/png');
+                                }
+                            }, mimeType, quality);
+                        });
+                        if (!convertedFileName) {
+                            const outExt = formatMap[toFormat]?.ext || 'png';
+                            convertedFileName = currentFile.name.replace(/\.[^.]+$/, '') + '.' +
+                                outExt;
+                        }
+                    }
+
+                    const resultURL = URL.createObjectURL(convertedBlob);
+                    const resultImg = new Image();
+                    resultImg.onload = function() {
+                        previewImage.src = resultURL;
+                        previewArea.classList.add('visible');
+                        previewMeta.innerHTML = `
+                            <span>📐 ${resultImg.naturalWidth} × ${resultImg.naturalHeight} px</span>
+                            <span>💾 ${formatFileSize(convertedBlob.size)}</span>
+                            <span>✅ ${toFormat.toUpperCase()}</span>
+                        `;
+                    };
+                    resultImg.src = resultURL;
+
+                    downloadBtn.classList.add('visible');
+                    convertBtn.classList.add('success-state');
+                    convertBtn.innerHTML = '✅ Готово!';
+                    showToast('Конвертация завершена! Нажмите "Скачать результат".', 'success');
+
+                } catch (err) {
+                    console.error('Conversion error:', err);
+                    showToast('Ошибка конвертации: ' + err.message, 'error');
+                    convertBtn.classList.remove('success-state');
+                } finally {
+                    isConverting = false;
+                    updateConvertButtonText();
+                    if (convertedBlob && convertBtn.classList.contains('success-state')) {
+                        convertBtn.innerHTML = '✅ Готово!';
+                    }
+                }
+            });
+
+            function loadImage(dataURL) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => {
+                        if (dataURL.startsWith('data:image/svg') || dataURL.includes('<svg')) {
+                            reject(new Error('Не удалось загрузить SVG.'));
+                        } else {
+                            reject(new Error(
+                                'Не удалось загрузить изображение. Возможно, формат не поддерживается браузером.'
+                            ));
+                        }
+                    };
+                    img.src = dataURL;
+                });
+            }
+
+            // ============ Скачивание ============
+            downloadBtn.addEventListener('click', () => {
+                if (!convertedBlob || !convertedFileName) {
+                    showToast('Нет результата для скачивания.', 'error');
+                    return;
+                }
+                const url = URL.createObjectURL(convertedBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = convertedFileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('Файл сохранён: ' + convertedFileName, 'success');
+            });
+
+            // ============ Инициализация ============
+            function init() {
+                updateConvertButtonText();
+                updateQualityVisibility();
+                qualityValue.textContent = Math.round(parseFloat(qualitySlider.value) * 100) + '%';
+            }
+
+            document.addEventListener('paste', (e) => {
+                if (e.clipboardData && e.clipboardData.files.length > 0) {
+                    e.preventDefault();
+                    handleFile(e.clipboardData.files[0]);
+                    showToast('Файл вставлен из буфера обмена!', 'info');
+                }
+            });
+
+            init();
+            console.log('🚀 ProConverter готов к работе!');
+        })();
+    </script>
+</body>
+</html>
